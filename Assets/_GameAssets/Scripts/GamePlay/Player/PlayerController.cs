@@ -8,12 +8,14 @@ public class PlayerController : MonoBehaviour
     [Header("Movement Settings")]
     [SerializeField] private KeyCode _movementKey;
     [SerializeField] private float _movementSpeed;
-    [SerializeField] private float _maxSpeed; // Maksimum hız limiti eklendi
+    [SerializeField] private float _maxSpeed;
 
     [Header("Jump Settings")]
     [SerializeField] private KeyCode _jumpKey = KeyCode.Space;
     [SerializeField] private float _jumpForce;
     [SerializeField] private float _jumpCooldown;
+    [SerializeField] private float _airMultiplier;
+    [SerializeField] private float _airDrag;
     [SerializeField] private bool _canJump = true;
 
     [Header("Slide Settings")]
@@ -29,29 +31,32 @@ public class PlayerController : MonoBehaviour
     [SerializeField] private LayerMask _groundLayer;
     [SerializeField] private float _groundDrag;
 
+    private StateController _stateController;
     private Rigidbody _playerRigidbody;
     private float _horizontalInput, _verticalInput;
     private Vector3 _movementDirection;
 
     private void Awake()
     {
+        _stateController = GetComponent<StateController>();
         _playerRigidbody = GetComponent<Rigidbody>();
         _playerRigidbody.freezeRotation = true;
         _startYScale = transform.localScale.y;
     }
-    
+
     private void Start()
     {
         _canJump = true;
     }
-    
+
     private void Update()
     {
-        SetInputs(); 
+        SetInputs();
+        SetState();
         SetPlayerDrag();
-        LimitPlayerSpeed(); // Hız limiti kontrolü eklendi
+        LimitPlayerSpeed();
     }
-    
+
     private void FixedUpdate()
     {
         SetPlayerMovement();
@@ -62,18 +67,16 @@ public class PlayerController : MonoBehaviour
         _horizontalInput = Input.GetAxisRaw("Horizontal");
         _verticalInput = Input.GetAxisRaw("Vertical");
 
-        if(Input.GetKeyDown(_slideKey))
+        if (Input.GetKeyDown(_slideKey))
         {
             _isSliding = true;
-            Debug.Log("Player Sliding!");
         }
-        else if(Input.GetKeyDown(_movementKey))
+        else if (Input.GetKeyDown(_movementKey))
         {
             _isSliding = false;
-            Debug.Log("Player Moving!");
         }
 
-        else if(Input.GetKey(_jumpKey) && _canJump && IsGrounded())
+        if (Input.GetKey(_jumpKey) && _canJump && IsGrounded())
         {
             _canJump = false;
             SetPlayerJumping();
@@ -81,48 +84,85 @@ public class PlayerController : MonoBehaviour
         }
     }
 
+    private void SetState()
+    {
+        var movementDirection = GetMovementDirection();
+        var isGrounded = IsGrounded();
+        var currentState = _stateController.GetCurrentState();
+
+        var newState = currentState switch
+        {
+            _ when movementDirection == Vector3.zero && isGrounded && !_isSliding => PlayerState.Idle,
+            _ when movementDirection != Vector3.zero && isGrounded && !_isSliding => PlayerState.Move,
+            _ when movementDirection != Vector3.zero && isGrounded && _isSliding => PlayerState.Slide,
+            _ when movementDirection == Vector3.zero && isGrounded && _isSliding => PlayerState.SlideIdle,
+            _ when !_canJump && !isGrounded => PlayerState.Jump,
+            _ => currentState,
+        };
+
+        if (newState != currentState)
+        {
+            _stateController.ChangeState(newState);
+        }
+    }
+
     private void SetPlayerMovement()
     {
         _movementDirection = _orientationTransform.forward * _verticalInput +
-                            _orientationTransform.right * _horizontalInput;
-        
-        if(_isSliding)
+                             _orientationTransform.right * _horizontalInput;
+
+        float forceMultiplier = _stateController.GetCurrentState() switch
         {
-            _playerRigidbody.AddForce(_movementDirection.normalized * _movementSpeed * _slideMultiplier, ForceMode.Force);
-        }
-        else
-        {
-            _playerRigidbody.AddForce(_movementDirection.normalized * _movementSpeed, ForceMode.Force);
-        }
+            PlayerState.Move => 1f,
+            PlayerState.Slide => _slideMultiplier,
+            PlayerState.Jump => _airMultiplier,
+            _ => 1f
+        };
+
+        _playerRigidbody.AddForce(
+            _movementDirection.normalized * _movementSpeed * forceMultiplier,
+            ForceMode.Force
+        );
     }
 
     private void SetPlayerDrag()
     {
-        if(_isSliding)
+        _playerRigidbody.linearDamping = _stateController.GetCurrentState() switch
         {
-            _playerRigidbody.linearDamping = _slideDrag;
-        }
-        else
-        {
-            _playerRigidbody.linearDamping = _groundDrag;
-        }
+            PlayerState.Move => _groundDrag,
+            PlayerState.Slide => _slideDrag,
+            PlayerState.Jump => _airDrag,
+            _ => _playerRigidbody.linearDamping
+        };
     }
 
-    private void LimitPlayerSpeed() // Hile için önemli limit koy!!!
+    private void LimitPlayerSpeed()
     {
-        Vector3 flatVelocity = new Vector3(_playerRigidbody.linearVelocity.x, 0f, _playerRigidbody.linearVelocity.z);
-        
-        // Maksimum hızı kontrol et
-        if(flatVelocity.magnitude > _movementSpeed)
+        Vector3 flatVelocity = new Vector3(
+            _playerRigidbody.linearVelocity.x,
+            0f,
+            _playerRigidbody.linearVelocity.z
+        );
+
+        if (flatVelocity.magnitude > _maxSpeed)
         {
-            Vector3 limitedVelocity = flatVelocity.normalized * _movementSpeed;
-            _playerRigidbody.linearVelocity = new Vector3(limitedVelocity.x, _playerRigidbody.linearVelocity.y, limitedVelocity.z);
+            Vector3 limitedVelocity = flatVelocity.normalized * _maxSpeed;
+            _playerRigidbody.linearVelocity = new Vector3(
+                limitedVelocity.x,
+                _playerRigidbody.linearVelocity.y,
+                limitedVelocity.z
+            );
         }
     }
 
     private void SetPlayerJumping()
-    {    
-        _playerRigidbody.linearVelocity = new Vector3(_playerRigidbody.linearVelocity.x, 0f, _playerRigidbody.linearVelocity.z);
+    {
+        _playerRigidbody.linearVelocity = new Vector3(
+            _playerRigidbody.linearVelocity.x,
+            0f,
+            _playerRigidbody.linearVelocity.z
+        );
+
         _playerRigidbody.AddForce(transform.up * _jumpForce, ForceMode.Impulse);
     }
 
@@ -133,6 +173,16 @@ public class PlayerController : MonoBehaviour
 
     private bool IsGrounded()
     {
-        return Physics.Raycast(transform.position, Vector3.down, _playerHeight * 0.5f + 0.2f, _groundLayer);
+        return Physics.Raycast(
+            transform.position,
+            Vector3.down,
+            _playerHeight * 0.5f + 0.2f,
+            _groundLayer
+        );
+    }
+
+    private Vector3 GetMovementDirection()
+    {
+        return _movementDirection.normalized;
     }
 }

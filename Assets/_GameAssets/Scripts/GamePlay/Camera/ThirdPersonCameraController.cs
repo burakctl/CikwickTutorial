@@ -22,7 +22,7 @@ public class ThirdPersonCameraController : MonoBehaviour
         Vector3 inputDirection = _orientationTransform.forward * verticalInput + 
                                 _orientationTransform.right * horizontalInput;
         
-        if (inputDirection.magnitude > 0.1f)
+        if (inputDirection != Vector3.zero )
         {
             _playerVisualTransform.forward = Vector3.Slerp(_playerVisualTransform.forward, 
                                                           inputDirection.normalized, 
