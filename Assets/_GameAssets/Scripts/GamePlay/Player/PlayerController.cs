@@ -69,6 +69,7 @@ public class PlayerController : MonoBehaviour
     private void FixedUpdate()
     {
         SetPlayerMovement();
+        PreventAutoSlide();
     }
 
     private void SetInputs()
@@ -154,6 +155,18 @@ public class PlayerController : MonoBehaviour
         {
             Vector3 limitedVelocity = flatVelocity.normalized * _maxSpeed;
             _playerRigidbody.linearVelocity = new Vector3(limitedVelocity.x, _playerRigidbody.linearVelocity.y, limitedVelocity.z);
+        }
+    }
+
+    private void PreventAutoSlide()
+    {
+        if (!IsGrounded()) return;
+
+        // If no movement input and not intentionally sliding, stop horizontal drift
+        if (_horizontalInput == 0f && _verticalInput == 0f && !_isSliding)
+        {
+            var v = _playerRigidbody.linearVelocity;
+            _playerRigidbody.linearVelocity = new Vector3(0f, v.y, 0f);
         }
     }
 

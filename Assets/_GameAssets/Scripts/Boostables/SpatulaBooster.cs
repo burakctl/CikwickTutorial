@@ -16,7 +16,7 @@ public class SpatulaBooster : MonoBehaviour, IBoostable
         PlayboostAnimation();
         Rigidbody playerRigidbody = playerController.GetPlayerRigidbody();
         playerRigidbody.linearVelocity = new Vector3(playerRigidbody.linearVelocity.x, 0f, playerRigidbody.linearVelocity.z);
-        playerRigidbody.AddForce(transform.forward*_jumpForce, ForceMode.Impulse);  
+        playerRigidbody.AddForce(Vector3.up * _jumpForce, ForceMode.Impulse);
         _isActivated = true;
         Invoke(nameof(ResetActivation), 0.2f);
     }
