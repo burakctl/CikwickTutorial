@@ -15,9 +15,6 @@ public class RottenWheatCollectible : MonoBehaviour, ICollectible
         _playerBoosterImage = _playerBoosterTransform.GetComponent<Image>();
     }
 
-
-    
-
     public void Collect()
     {
         _playerController.SetMovementSpeed(_wheatDesignSO.IncreaseDecreaseMultiplier, _wheatDesignSO.ResetBoostDuration);
