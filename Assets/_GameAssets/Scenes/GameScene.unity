@@ -2357,6 +2357,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 448b4c3b1fd402b48abd51df958980a3, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  _playerHealthUI: {fileID: 1681203695}
   _maxHealth: 3
 --- !u!1 &410087039
 GameObject:
@@ -4832,7 +4833,7 @@ GameObject:
   - component: {fileID: 1267156632}
   - component: {fileID: 1267156628}
   - component: {fileID: 1267156627}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: Player
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -4974,6 +4975,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: fa6474b36f41f5b4287dd46ac6dd86bd, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  playerVisualTransform: {fileID: 543450652765357718}
 --- !u!1 &1282523480
 GameObject:
   m_ObjectHideFlags: 0
@@ -6071,6 +6073,7 @@ MonoBehaviour:
   _eggCounterUI: {fileID: 2125926300}
   _winLoseUI: {fileID: 679470379}
   _maxEggCount: 5
+  _delay: 0.3
 --- !u!4 &1619836790
 Transform:
   m_ObjectHideFlags: 0
@@ -7585,6 +7588,18 @@ PrefabInstance:
       propertyPath: m_Name
       value: Environment
       objectReference: {fileID: 0}
+    - target: {fileID: 3976867967236654121, guid: 69ef6ec9a0720ab4181a382ad028a657, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: -0.12
+      objectReference: {fileID: 0}
+    - target: {fileID: 3976867967236654121, guid: 69ef6ec9a0720ab4181a382ad028a657, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 6.45
+      objectReference: {fileID: 0}
+    - target: {fileID: 3976867967236654121, guid: 69ef6ec9a0720ab4181a382ad028a657, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: -0.14
+      objectReference: {fileID: 0}
     - target: {fileID: 5370918421120594589, guid: 69ef6ec9a0720ab4181a382ad028a657, type: 3}
       propertyPath: 'm_Materials.Array.data[0]'
       value: 
@@ -7598,7 +7613,9 @@ PrefabInstance:
       value: 
       objectReference: {fileID: 2100000, guid: 2dfbb2d76ad6f0c43ac8f3ce7b0f6599, type: 2}
     m_RemovedComponents: []
-    m_RemovedGameObjects: []
+    m_RemovedGameObjects:
+    - {fileID: 2795595344601563495, guid: 69ef6ec9a0720ab4181a382ad028a657, type: 3}
+    - {fileID: -967373435552589514, guid: 69ef6ec9a0720ab4181a382ad028a657, type: 3}
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 69ef6ec9a0720ab4181a382ad028a657, type: 3}
